@@ -8,23 +8,23 @@ User will be able to access thier portoflio and make trades via command line int
 User will be able to buy and sell securities of a desired stock in a simulated enviorment
 Cryptocurrencies are unsupported 
 
-Author - Daksh Khandelwal - https://github.com/wizdaksh
-School - Patriot High School 
-Class - AP Computer Science Principles 
-
 /// DISCLAIMER ///
 ALL OPENSOURCE LIBRARIES AND APIS HAVE BEEN CITED PER THE ACADEMIC CODE
 '''
 
+#Module imports
 import yfinance as yf # yfinance 0.2.37 - Opensource library for extracting live and historical stock market data using publicy available Yahoo API's; GitRepo https://github.com/ranaroussi/yfinance
 import plotext as plt # plotext 5.3.0 - Opensource library for plotting data directily in terminal; GitRepo https://github.com/piccolomo/plotext
 import pprint # - Library for organized lengthy outputs; https://github.com/python/cpython/blob/3.12/Lib/pprint.py
 from datetime import date
 import locale
 
+# Set locale to English
 locale.setlocale(locale.LC_ALL, 'en_US')
 
-# TODO - Users start out with $250,000 in buying power 
+fStringNextLine = "\n"
+
+# Users start out with $250,000 in buying power 
 userPortfolio = {
     "name": "",
     "buyingPower": 250000,
@@ -32,13 +32,16 @@ userPortfolio = {
     "securities": [],
 }
 
+# Initialize User portoflio object/dictionary 
 transactionHistory = {
     "buys": [],
     "sells": [],
     'transactionCount': 0
 }
 
+# Main Program
 def main():
+
     # Object class for creating a candle stick chart for a stock
     class candleStickChart:
         def __init__(self, symbol, start):
@@ -94,13 +97,13 @@ def main():
             print("Invalid Input")
 
 
-    # TODO - Ask user for name and give them an introduction
+    # Ask user for name and give them an introduction
     print("\nWelcome, trader! This is the VSXT, or Visual Studio Exchange Terminal! You've finally acquired enough investment capital, $250,000, to buy some serious stocks. The goal is make maximum returns. You'll start by analyzing some company data!\n")
     userPortfolio["name"] = input("What shall I call you? - ")
     print(f"\nHello, {userPortfolio['name']}!\n")
     print("Let's start analyzing some real-time market data. Our Terminal is powered by the publicly available Yahoo API's. We'll be using the data to analyze a companies financial data as well as any relevant news. Most commands are expecting a 'yes' or 'no' input unless specified. And 'exit' is for extiting the command loop and movign on to the next one.\n")
 
-    # TODO - Create function for users lookup stocks of their choice and see data
+    # Create function for users lookup stocks of their choice and see data
     security = input("Start by entering a SEC valid Ticker - ")
     start = input("Enter starting range for data in d/m/Y - ")
     data = candleStickChart(security, start)
@@ -118,7 +121,6 @@ def main():
 
     # WITH SYS.STDIN AS FILE MODULES ARENT GLOBAL! Or you'll get a I/O error!
     # Just use while True loops to get user input.
-    userInTerminal = True
     symbol = yf.Ticker(security)
     while True:
         userInput = input("Would you like to see news? - ")
@@ -133,12 +135,14 @@ def main():
             print(e)
         else:
             break
-
+    
+    # Returns True if the user enters a valid command, false otherwise
     def checkCommand(inputs) -> bool:
-        if len(inputs) > 1:
-            if inputs[0] not in commands:
+        if len(inputs) > 1: #Checks if input is more than one word
+            if inputs[0] not in commands: #Checks if first word is not a command
                 return False
-            symbol = yf.Ticker(inputs[1])
+            
+            symbol = yf.Ticker(inputs[1]) #Checks if second word is a valid ticker
             data = symbol.info
             if len(data) < 2:
                 return False
@@ -306,7 +310,7 @@ def main():
                     pprint.pprint(userPortfolio)                        
                     return f"\nYour sell of {sharesAmount} shares at {locale.currency(price*sharesAmount, grouping=True)} for {self.symbol} has been executed.\nPrice - {locale.currency(price, grouping=True)}\nBuying power - {locale.currency(liquidCash, grouping=True)}\nExecuted - {cDate}\n"
 
-    # TODO - Add try except block for executed user input
+    # Try except block for executed user input
     class buyOrSell:
         def __init__(self, symbol) -> None:
             self.symbol = symbol
@@ -334,6 +338,7 @@ def main():
         'getNews',
         'getInfo',
         'getChart',
+        'getPortfolio',
         'getActions',
         'getDividends',
         'getSplits',
@@ -360,7 +365,7 @@ def main():
             
             elif self.command == 'getInfo': 
                 return symbol.info
-        
+            
             elif self.command == 'getChart':
                 start = input("Enter starting range for data in d/m/Y - ")
                 data = candleStickChart(self.symbol, start)
@@ -450,7 +455,7 @@ def main():
                 if executed == 1:
                     return "Exited Transaction Interface"
                 return executed
-
+            
             else:
                 commandError = checkCommand([self.command, self.symbol]) 
                 if not commandError:
@@ -460,6 +465,8 @@ def main():
 
     def readUserCommand(userCommand):
         inputs = userCommand.split(" ")
+        if inputs == 'getPortfolio':
+            return inputs, 'foo'
         if checkCommand(inputs):
             return inputs[0], inputs[1]
         else:
@@ -470,24 +477,25 @@ def main():
     class commandLoop:
         def runLoop():
             while True:
-                userCommand = input("Enter space seperated command and symbol, or enter 'exit' to start trading securities - ")
+                userCommand = input("Enter space seperated command and symbol, or 'getPortfolio' to view your portfolio or 'exit' to quit the terminal. - ")
                 if userCommand == 'exit':
                     break
+                elif userCommand == 'getPortfolio':
+                    pprint.pprint(userPortfolio)
+                    continue
                 else: 
                     out = readUserCommand(userCommand)
                 try: 
                     companyData = runCommand(out[0], out[1])
                     executed = companyData.run()
                     if executed == 500:
-                        raise Exception(f"Invalid Command, Commands are {commands}")
-                    if executed == 300:
-                        raise Exception('Invalid Symbol')
-                    if executed == 0:
+                        raise Exception(f"{fStringNextLine}Invalid Command, Commands are {commands}")
+                    if executed == 69:
                         raise Exception("FTX took all you're money!")
                 except Exception as e:
                     print(e)
                 else: 
-                    if out[0] == 'trade':
+                    if out[0] == 'trade' or out== 'getPortfolio':
                         print(executed)
                     else:
                         pprint.pprint(executed)
